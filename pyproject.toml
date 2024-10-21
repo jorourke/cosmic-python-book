@@ -1,0 +1,18 @@
+[project]
+name = "cosmic-python-book"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.0.3",
+    "mypy>=1.12.1",
+    "psycopg2-binary>=2.9.10",
+    "pylint>=3.3.1",
+    "pytest>=8.3.3",
+    "pytest-icdiff>=0.9",
+    "redis>=5.1.1",
+    "requests>=2.32.3",
+    "sqlalchemy<2",
+    "tenacity>=9.0.0",
+]
