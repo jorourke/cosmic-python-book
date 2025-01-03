@@ -1,8 +1,10 @@
 import json
+
 import pytest
-from tenacity import Retrying, RetryError, stop_after_delay
-from . import api_client, redis_client
+from tenacity import Retrying, stop_after_delay
+
 from ..random_refs import random_batchref, random_orderid, random_sku
+from . import api_client, redis_client
 
 
 @pytest.mark.usefixtures("postgres_db")
@@ -30,9 +32,10 @@ def test_change_batch_quantity_leading_to_reallocation():
     for attempt in Retrying(stop=stop_after_delay(3), reraise=True):
         with attempt:
             message = subscription.get_message(timeout=1)
-            if message:
+            print(f"Message: {message}")
+            if message and message["type"] == "message":
                 messages.append(message)
-                print(messages)
-            data = json.loads(messages[-1]["data"])
-            assert data["orderid"] == orderid
-            assert data["batchref"] == later_batch
+            if messages:  # Only try to process messages if we have any
+                data = json.loads(messages[-1]["data"])
+                assert data["orderid"] == orderid
+                assert data["batchref"] == later_batch

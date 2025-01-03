@@ -1,4 +1,5 @@
 import requests
+
 from allocation import config
 
 
@@ -19,6 +20,7 @@ def post_to_allocate(orderid, sku, qty, expect_success=True):
             "sku": sku,
             "qty": qty,
         },
+        timeout=5,
     )
     if expect_success:
         assert r.status_code == 201

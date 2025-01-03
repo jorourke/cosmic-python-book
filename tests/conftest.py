@@ -8,11 +8,11 @@ import pytest
 import redis
 import requests
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, clear_mappers
+from sqlalchemy.orm import clear_mappers, sessionmaker
 from tenacity import retry, stop_after_delay
 
-from allocation.adapters.orm import metadata, start_mappers
 from allocation import config
+from allocation.adapters.orm import metadata, start_mappers
 
 
 @pytest.fixture
@@ -41,7 +41,7 @@ def wait_for_postgres_to_come_up(engine):
 
 @retry(stop=stop_after_delay(10))
 def wait_for_webapp_to_come_up():
-    return requests.get(config.get_api_url())
+    return requests.get(config.get_api_url(), timeout=3)
 
 
 @retry(stop=stop_after_delay(10))
@@ -70,7 +70,7 @@ def postgres_session(postgres_session_factory):
     return postgres_session_factory()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def restart_api():
     (Path(__file__).parent / "../src/allocation/entrypoints/flask_app.py").touch()
     time.sleep(0.5)
