@@ -1,7 +1,6 @@
 version: "3"
 
 services:
-
   redis_pubsub:
     build:
       context: .
@@ -14,6 +13,7 @@ services:
       - DB_HOST=postgres
       - DB_PASSWORD=abc123
       - REDIS_HOST=redis
+      - LOG_LEVEL=DEBUG
       - PYTHONDONTWRITEBYTECODE=1
     volumes:
       - ./src:/src
@@ -76,4 +76,3 @@ services:
 networks:
   allocation-network:
     driver: bridge
-

@@ -39,3 +39,35 @@ def test_change_batch_quantity_leading_to_reallocation():
                 data = json.loads(messages[-1]["data"])
                 assert data["orderid"] == orderid
                 assert data["batchref"] == later_batch
+
+
+@pytest.mark.usefixtures("postgres_db")
+@pytest.mark.usefixtures("restart_api")
+@pytest.mark.usefixtures("restart_redis_pubsub")
+def test_allocate_message():
+    orderid, sku = random_orderid(), random_sku()
+    batch = random_batchref()
+
+    # First, create a batch that we can allocate to
+    api_client.post_to_add_batch(batch, sku, qty=10, eta="2011-01-01")
+
+    # Subscribe to the line_allocated channel to see the result
+    subscription = redis_client.subscribe_to("line_allocated")
+
+    # Publish the allocate command
+    redis_client.publish_message(
+        "allocate", {"orderid": orderid, "sku": sku, "qty": 10}
+    )
+
+    # Wait for and verify the allocation result
+    messages = []
+    for attempt in Retrying(stop=stop_after_delay(3), reraise=True):
+        with attempt:
+            message = subscription.get_message(timeout=1)
+            print(f"Message: {message}")
+            if message and message["type"] == "message":
+                messages.append(message)
+            if messages:
+                data = json.loads(messages[-1]["data"])
+                assert data["orderid"] == orderid
+                assert data["batchref"] == batch
